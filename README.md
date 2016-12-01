@@ -1,3 +1,3 @@
 # Sigfox
 
-This lib ease Sigfox concepts manipulation
+This lib ease Sigfox concepts manipulation.
