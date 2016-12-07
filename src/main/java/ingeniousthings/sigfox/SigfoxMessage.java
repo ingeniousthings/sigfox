@@ -135,4 +135,22 @@ public class SigfoxMessage {
     public SigfoxData getSigfoxData() {
         return new SigfoxData(this.data);
     }
+
+    @Override
+    public String toString() {
+        return "SigfoxMessage{" +
+            "device='" + device + '\'' +
+            ", time=" + time +
+            ", duplicate=" + duplicate +
+            ", snr=" + snr +
+            ", station='" + station + '\'' +
+            ", data='" + data + '\'' +
+            ", lat=" + lat +
+            ", lng=" + lng +
+            ", seqNumber=" + seqNumber +
+            ", avgSnr=" + avgSnr +
+            ", ack=" + ack +
+            ", rssi=" + rssi +
+            '}';
+    }
 }
