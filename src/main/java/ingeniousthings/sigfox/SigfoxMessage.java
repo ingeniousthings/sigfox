@@ -132,10 +132,6 @@ public class SigfoxMessage {
         this.rssi = rssi;
     }
 
-    public SigfoxData getSigfoxData() {
-        return new SigfoxData(this.data);
-    }
-
     @Override
     public String toString() {
         return "SigfoxMessage{" +
