@@ -32,6 +32,9 @@ import org.apache.commons.codec.binary.Base64;
  * ----------------------------------------------------------------------------------
  * Requires:
  *   This class requieres SpringBoot framework
+ *   This class requieres
+ *     compile("org.apache.httpcomponents:httpcore:4.4.6")
+ *     compile("commons-codec:commons-codec:1.10")
  * ----------------------------------------------------------------------------------
  * Support :
  *
@@ -40,7 +43,7 @@ import org.apache.commons.codec.binary.Base64;
  */
 public class SigfoxApiConnector {
 
-        private static final Logger log = LoggerFactory.getLogger(SigfoxApiConnector.class);
+        protected static final Logger log = LoggerFactory.getLogger(SigfoxApiConnector.class);
 
         private String login;           // Api login given by sigfox
         private String password;        // Api password given by sigfox
@@ -73,7 +76,7 @@ public class SigfoxApiConnector {
 
         // ---------------------------------------------------------------------------
         // Create a request including a basic Authentication with the given credentials
-        protected HttpEntity<String> generateRequest() {
+        protected HttpEntity<String> generateRequestHeaders() {
             String plainCreds = this.login+":"+this.password;
             byte[] base64CredsBytes = Base64.encodeBase64(plainCreds.getBytes(Charset.forName("US-ASCII")));
             String base64Creds = new String(base64CredsBytes);
@@ -97,7 +100,7 @@ public class SigfoxApiConnector {
                                     "lat=45.78&lng=3.08&mode=OUTDOOR"
                             ),
                             HttpMethod.GET,
-                            this.generateRequest(),
+                            this.generateRequestHeaders(),
                             SigfoxApiCoverageRedundancy.class);
             SigfoxApiCoverageRedundancy coverage = response.getBody();
 
