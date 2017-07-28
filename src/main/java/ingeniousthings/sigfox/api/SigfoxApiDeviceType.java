@@ -49,6 +49,10 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
         super(login,password);
     }
 
+    // ========================================================================
+    // Get the list of all the Devicetype you can access to
+    // This returns all the information about the device type itself but not the
+    // associated callback
     public List<SigfoxApiDeviceTypeInformation> getSigfoxAllDeviceType() {
 
         RestTemplate restTemplate = new RestTemplate();
@@ -69,6 +73,26 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
         return Arrays.asList(devicetype.getData());
     }
 
+    // ========================================================================
+    // Get the information about a Specific Devicetype based on its Id
+    // the input is a deviceType id. this function also request the information
+    // about the callbacks when type is custom
+    public SigfoxApiDeviceTypeInformation getSigfoxDeviceTypeById(String id) {
+            RestTemplate restTemplate = new RestTemplate();
+
+            ResponseEntity<SigfoxApiDeviceTypeInformation> response =
+                    restTemplate.exchange(
+                            this.connectionString(
+                                    "devicetypes/"+id,
+                                    null
+                            ),
+                            HttpMethod.GET,
+                            this.generateRequestHeaders(),
+                            SigfoxApiDeviceTypeInformation.class);
+            SigfoxApiDeviceTypeInformation devicetype = response.getBody();
+            log.info(devicetype.toString());
+            return devicetype;
+    }
 
 
 
