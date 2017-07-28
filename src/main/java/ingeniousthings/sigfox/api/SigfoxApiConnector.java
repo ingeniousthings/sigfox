@@ -77,13 +77,24 @@ public class SigfoxApiConnector {
         // ---------------------------------------------------------------------------
         // Create a request including a basic Authentication with the given credentials
         protected HttpEntity<String> generateRequestHeaders() {
+            return generateRequestHeaders(false,null);
+        }
+        protected HttpEntity<String> generateRequestHeaders(boolean postJson, String body) {
+            HttpEntity<String> request;
+
             String plainCreds = this.login+":"+this.password;
             byte[] base64CredsBytes = Base64.encodeBase64(plainCreds.getBytes(Charset.forName("US-ASCII")));
             String base64Creds = new String(base64CredsBytes);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", "Basic " + base64Creds);
-            HttpEntity<String> request = new HttpEntity<String>(headers);
+            if (postJson) {
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                request = new HttpEntity<String>(body, headers);
+            } else {
+                request = new HttpEntity<String>(headers);
+            }
+
             return request;
         }
 

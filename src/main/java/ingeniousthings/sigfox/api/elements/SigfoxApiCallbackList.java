@@ -20,6 +20,8 @@ import java.lang.Override;
 import java.lang.String;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
+
 
 /**
  * Summary
@@ -63,6 +65,36 @@ public class SigfoxApiCallbackList {
     private SigfoxApiCallbackInformation[] service;
     private SigfoxApiCallbackInformation[] error;
 
+    // =================================================
+    // Custom getters & setters
+    // =================================================
+
+    public List<SigfoxApiCallbackInformation> getDataCallbackAsList() {
+        return (data!=null)?Arrays.asList(data):new ArrayList<SigfoxApiCallbackInformation>();
+    }
+
+    public List<SigfoxApiCallbackInformation> getServiceCallbackAsList() {
+        return (service!=null)?Arrays.asList(service):new ArrayList<SigfoxApiCallbackInformation>();
+    }
+
+    public List<SigfoxApiCallbackInformation> getErrorCallbackAsList() {
+        return (error!=null)?Arrays.asList(error):new ArrayList<SigfoxApiCallbackInformation>();
+    }
+
+    public List<SigfoxApiCallbackInformation> getAllCallbackAsList() {
+        List<SigfoxApiCallbackInformation> l = new ArrayList<SigfoxApiCallbackInformation>();
+        l.addAll(this.getDataCallbackAsList());
+        l.addAll(this.getServiceCallbackAsList());
+        l.addAll(this.getErrorCallbackAsList());
+        return l;
+    }
+
+
+    // =================================================
+    // Generated getters & setters
+    // =================================================
+
+
     public SigfoxApiCallbackInformation[] getData() {
         return data;
     }
@@ -98,18 +130,22 @@ public class SigfoxApiCallbackList {
             s+="},";
         }
         s +=  "],service= [";
-        List<SigfoxApiCallbackInformation> l = Arrays.asList(service);
-        for ( SigfoxApiCallbackInformation o : l ){
-            s+="{";
-            s+= o.toString();
-            s+="},";
+        if ( service != null ) {
+            l = Arrays.asList(service);
+            for (SigfoxApiCallbackInformation o : l) {
+                s += "{";
+                s += o.toString();
+                s += "},";
+            }
         }
         s +=  "],error= [";
-        List<SigfoxApiCallbackInformation> l = Arrays.asList(error);
-        for ( SigfoxApiCallbackInformation o : l ){
-            s+="{";
-            s+= o.toString();
-            s+="},";
+        if ( error != null ) {
+            l = Arrays.asList(error);
+            for (SigfoxApiCallbackInformation o : l) {
+                s += "{";
+                s += o.toString();
+                s += "},";
+            }
         }
         s +=  "]}";
 

@@ -16,13 +16,23 @@
 
 package ingeniousthings.sigfox.api.elements;
 
+import java.io.IOException;
 import java.lang.Override;
 import java.lang.String;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Summary
  *
- * Object retruned by sigfox API corresponding to a coverage redundancy. (number of antennas covereing the area)
+ * Object retruned by sigfox API corresponding to a device type. this object can handle a
+ * link to associated callbacks.
+ *
+ * This class is also used to compose a Device Type from a Json external data with the objective
+ * to be deployed automatically in the backend. Json data have same format but includes the callbackentries
  * ----------------------------------------------------------------------------------
  * Response Format :
  *  {
@@ -30,14 +40,18 @@ import java.lang.String;
  *      "name" : "Sigfox test device",
  *      "group" : "4d39a4c9e03e6b3c430e2188",
  *      "description" : "Little things in the black boxes",
- *      "keepAlive" : 0,
- *      "payloadType" : "Geolocation",
+ *      "keepAlive" : 7200,
+ *      "payloadType" : "None",
  *      "contract" : "523b1d10d777d3f5ae038a02"
  *  }
  *
  * @author Paul Pinault
  */
 public class SigfoxApiDeviceTypeInformation {
+
+    // -----------------------------------------
+    // Internals
+    // -----------------------------------------
 
     private String id;
     private String name;
@@ -46,11 +60,73 @@ public class SigfoxApiDeviceTypeInformation {
     private int    keepAlive;
     private String payloadType;
     private String contract;
+    private String contractId;          // because the sigfox Api change the name of the same variables...
+    private int    downlinkMode;        // 0 : direct 1 : through callback
+    private String downlinkDataString;
+    private String alertEmail;
+
+    private SigfoxApiCallbackList  callback;
+
+
+    // -----------------------------------------
+    // Object initialization from Json data
+    // -----------------------------------------
+
+    public static SigfoxApiDeviceTypeInformation createFromJson( String _json ) throws IOException {
+
+        ObjectMapper mapper = new ObjectMapper();
+        SigfoxApiDeviceTypeInformation devicetype = mapper.readValue(_json, SigfoxApiDeviceTypeInformation.class);
+
+        return devicetype;
+
+    }
+
+    // -----------------------------------------
+    // String dump for deviceType creation with API
+    // -----------------------------------------
+    public String toPublication() {
+        return ("{" +
+                    " 'name' : '" + name + '\'' +
+                    ", 'group' : '" + group + '\'' +
+                    ", 'description' : '" + description + '\'' +
+                    ", 'keepAlive' : " + keepAlive +
+                    ", 'payloadType' : '" + payloadType + '\'' +
+                    ", 'contract' : '" + contract + '\'' +
+                    ", 'downlinkMode' : " + downlinkMode +
+                    ", 'downlinkDataString' : '" + downlinkDataString + '\'' +
+                    ", 'alertEmail' : '" + alertEmail + '\'' +
+                    ", 'contractId' : '" + contractId + '\'' +
+                "}").replace('\'','"');
+    }
+
+    public String toDelete() {
+        return ("{" +
+                " 'id' : '" + id + '\'' +
+                "}").replace('\'','"');
+    }
+
+    // -----------------------------------------
+    // Custom Getters & Setters
+    // -----------------------------------------
+
+    public void setContract(String contract) {
+        this.contract = contract;
+        this.contractId = contract;
+    }
+
+    public void setContractId(String contractId) {
+        this.contractId = contractId;
+        this.contract = contractId;
+    }
+
+    // -----------------------------------------
+    // Generated Getters & Setters
+    // -----------------------------------------
+
 
     public String getId() {
         return id;
     }
-
 
     public void setId(String id) {
         this.id = id;
@@ -100,10 +176,41 @@ public class SigfoxApiDeviceTypeInformation {
         return contract;
     }
 
-    public void setContract(String contract) {
-        this.contract = contract;
+    public SigfoxApiCallbackList getCallback() {
+        return callback;
     }
 
+    public void setCallback(SigfoxApiCallbackList callback) {
+        this.callback = callback;
+    }
+
+    public int getDownlinkMode() {
+        return downlinkMode;
+    }
+
+    public void setDownlinkMode(int downlinkMode) {
+        this.downlinkMode = downlinkMode;
+    }
+
+    public String getDownlinkDataString() {
+        return downlinkDataString;
+    }
+
+    public void setDownlinkDataString(String downlinkDataString) {
+        this.downlinkDataString = downlinkDataString;
+    }
+
+    public String getAlertEmail() {
+        return alertEmail;
+    }
+
+    public void setAlertEmail(String alertEmail) {
+        this.alertEmail = alertEmail;
+    }
+
+    public String getContractId() {
+        return contractId;
+    }
 
     @Override
     public String toString() {
@@ -115,6 +222,11 @@ public class SigfoxApiDeviceTypeInformation {
                 ", keepAlive=" + keepAlive +
                 ", payloadType='" + payloadType + '\'' +
                 ", contract='" + contract + '\'' +
+                ", contractId='" + contractId + '\'' +
+                ", downlinkMode=" + downlinkMode +
+                ", downlinkDataString='" + downlinkDataString + '\'' +
+                ", alertEmail='" + alertEmail + '\'' +
+                ", callback=" + callback +
                 '}';
     }
 
