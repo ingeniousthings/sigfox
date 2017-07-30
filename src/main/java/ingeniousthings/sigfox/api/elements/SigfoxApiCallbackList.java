@@ -89,6 +89,32 @@ public class SigfoxApiCallbackList {
         return l;
     }
 
+    // Search for the callback index using the same order as in the callbackList
+    // one found set the given id for this callback.
+    public boolean setCallbackId(int i, String id) {
+        // search for callback created with the corresponding index
+        List<SigfoxApiCallbackInformation> l = this.getAllCallbackAsList();
+        int k = 0;
+        for (SigfoxApiCallbackInformation c : l ) {
+            if ( i == k ) {
+                c.setId(id);
+                return true;
+            }
+            k++;
+        }
+        return false;
+    }
+
+    // Search in the data callback list if one of them have a downlink flag set
+    // retruns corresponding object when found otherwize null.
+    public SigfoxApiCallbackInformation getCallbackIdWithDownlinkHookSet() {
+        List<SigfoxApiCallbackInformation> l = this.getDataCallbackAsList();
+        for (SigfoxApiCallbackInformation c : l ) {
+            if ( c.isDownlinkHook() )
+            return c;
+        }
+        return null;
+    }
 
     // =================================================
     // Generated getters & setters

@@ -127,6 +127,7 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
                         this.generateRequestHeaders(true,o.toPublication()),
                         SigfoxApiDeviceTypeInformation.class);
         if (response.getStatusCode() == HttpStatus.OK) {
+            log.info("Devicetype creation success");
             SigfoxApiDeviceTypeInformation _t = response.getBody();
             o.setId(_t.getId());
 
@@ -141,7 +142,7 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
 
             System.out.println(body);
             try {
-                    ResponseEntity<String> response2 =
+                    ResponseEntity<String[]> response2 =
                             restTemplate.exchange(
                                     this.connectionString(
                                             "devicetypes/" + _t.getId() + "/callbacks/new",
@@ -149,10 +150,47 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
                                     ),
                                     HttpMethod.POST,
                                     this.generateRequestHeaders(true, body),
-                                    String.class);
+                                    String[].class);
+
                     if (response2.getStatusCode() == HttpStatus.OK) {
-                        String _s = response2.getBody();
-                        System.out.println(_s);
+                        log.info("Callback creation success");
+
+                        // update the callback Id
+                        String[] _s = response2.getBody();
+                        // Sigfox Bug : the id are not corectly ordered... reorder as the id is incremented
+                        // this is a workaround waiting for sigfox fix.
+                        Arrays.sort(_s);
+
+                        for ( int i = 0 ; i < _s.length ; i++ ) {
+                            if ( o.getCallback().setCallbackId(i, _s[i]) ) {
+                                log.info("Callback id assigned properly("+_s[i]+")" );
+                            } else {
+                                log.warn("callback id assignation failed");
+                            }
+                        }
+
+                        // set the corresponding callback as downlink if downlinkHook is set
+                        SigfoxApiCallbackInformation downlink = o.getCallback().getCallbackIdWithDownlinkHookSet();
+                        if ( downlink != null ) {
+                            log.info("downlink url : " + "devicetypes/" + _t.getId() + "/callbacks/" + downlink.getId() + "/downlink");
+                            ResponseEntity<String> response4 =
+                                    restTemplate.exchange(
+                                            this.connectionString(
+                                                    "devicetypes/" + _t.getId() + "/callbacks/" + downlink.getId() + "/downlink",
+                                                    null
+                                            ),
+                                            HttpMethod.POST,
+                                            this.generateRequestHeaders(),
+                                            String.class);
+                            if (response4.getStatusCode() == HttpStatus.OK) {
+                                String coverage = response4.getBody();
+                                log.info("Downlink assigned properly");
+                            } else {
+                                log.error("Downlink assignation failed");
+                            }
+                        }
+
+
                     } else {
                         log.error("Callback creation not possible, do nothing");
                     }

@@ -76,7 +76,7 @@ public class SigfoxApiCallbackInformation {
     private String contentType;
     private String httpMethod;
     private String linePattern;
-    private boolean downlinkHook;
+    private boolean downlinkHook;               // true when the callback is used for downlink
 
     // ========================================================================
     // ADVANCED GETTER / SETTER
@@ -123,11 +123,10 @@ public class SigfoxApiCallbackInformation {
                 ", 'sendSni' : " + sendSni;
 
          if ( this.isChannelUrl() ) {
-                str += ""+
-                     ", 'payloadConfig' : '" + payloadConfig + '\'' +
-                     ", 'bodyTemplate' : '" + bodyTemplate + '\'' +
-                     ", 'headers' : " + headers +
-                     ", 'contentType' : '" + contentType + '\'';
+                if (this.payloadConfig != null) str+= ", 'payloadConfig' : '" + payloadConfig + '\'';
+                if (this.bodyTemplate != null) str+= ", 'bodyTemplate' : '" + bodyTemplate + '\'' ;
+                if (this.headers != null ) str+= ", 'headers' : " + headers;
+                if (this.contentType != null) str += ", 'contentType' : '" + contentType + '\'';
          } else if ( this.isChannelBatchUrl() ) {
              str += ""+
                      ", 'linePattern' : '" + linePattern + '\'';
