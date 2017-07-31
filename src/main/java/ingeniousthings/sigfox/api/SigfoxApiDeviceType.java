@@ -43,6 +43,44 @@ import org.apache.commons.codec.binary.Base64;
  * Support :
  *
  *
+ * ----------------------------------------------------------------------------------
+ * Device Type definition exemple
+ * [
+ *  {
+ *     "channel" : "URL",
+ *     "callbackType" : 0,
+ *     "callbackSubtype" : 3,
+ *     "url" : "http://iot.disk91.com/test",
+ *     "httpMethod" : "POST",
+ *     "enabled" : true,
+ *     "sendDuplicate" : true,
+ *     "sendSni" : true,
+ *     "payloadConfig" : "",
+ *     "bodyTemplate" : "{ @device@ : @{device}@, @rssi@ : @{rssi}@ }",     // @ is later replaced by the right string
+ *     "headers" : { §time§ : §{time}§ },                                   // § is later replaced by the right string
+ *     "contentType" : "application/json"
+ *  },{
+ *     "channel" : "URL",
+ *     "callbackType" : 0,
+ *     "callbackSubtype" : 3,
+ *     "url" : "http://iot.disk91.com/test1",
+ *     "httpMethod" : "GET",
+ *     "enabled" : true,
+ *     "sendDuplicate" : true,
+ *     "sendSni" : true,
+ *     "downlinkHook" : true,                                   // make default downlink
+ *  },{
+ *      "channel" : "URL",
+ *      "callbackType" : 0,
+ *      "callbackSubtype" : 2,
+ *      "url" : "http://iot.disk91.com/test2",
+ *      "httpMethod" : "GET",
+ *      "enabled" : true,
+ *      "sendDuplicate" : false,
+ *      "sendSni" : true
+ *  }]
+ *
+ *
  * @author Paul Pinault
  */
 public class SigfoxApiDeviceType extends SigfoxApiConnector {
@@ -140,7 +178,9 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
             }
             body+="]";
 
-            System.out.println(body);
+            // Hook for correctly protect the " char in the message for being intepreted correctly in sigfox backen
+            body=body.replaceAll("@", "\\\\\"");
+            body=body.replaceAll("§", "\\\"");
             try {
                     ResponseEntity<String[]> response2 =
                             restTemplate.exchange(
