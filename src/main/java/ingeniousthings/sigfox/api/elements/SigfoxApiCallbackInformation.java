@@ -56,6 +56,11 @@ import java.lang.String;
  *  - channel "URL" and "BATCH_URL" only actually
  *  - callbacktype 0
  *
+ * ----------------------------------------------------------------------------------
+ * Tobe fixed
+ *  - when header field is {} the deserialization process crash. header should not be a String format
+ *         potentially Map<String,String> could be better ... to be tested
+ *
  * @author Paul Pinault
  */
 public class SigfoxApiCallbackInformation {

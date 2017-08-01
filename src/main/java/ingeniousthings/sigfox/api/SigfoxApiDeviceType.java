@@ -144,6 +144,19 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
             SigfoxApiCallbackList callbacks = response2.getBody();
             devicetype.setCallback(callbacks);
 
+            /*
+            ResponseEntity<String> response2 =
+                restTemplate.exchange(
+                        this.connectionString(
+                                "devicetypes/"+id+"/callbacks",
+                                null
+                        ),
+                        HttpMethod.GET,
+                        this.generateRequestHeaders(),
+                        String.class);
+            String callbacks = response2.getBody();
+            System.out.println(callbacks);
+            */
 
             log.info(devicetype.toString());
             return devicetype;
@@ -165,8 +178,8 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
                         this.generateRequestHeaders(true,o.toPublication()),
                         SigfoxApiDeviceTypeInformation.class);
         if (response.getStatusCode() == HttpStatus.OK) {
-            log.info("Devicetype creation success");
             SigfoxApiDeviceTypeInformation _t = response.getBody();
+            log.info("Devicetype creation success ("+_t.getId()+")");
             o.setId(_t.getId());
 
             // Create the associated callback
@@ -181,6 +194,8 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
             // Hook for correctly protect the " char in the message for being intepreted correctly in sigfox backen
             body=body.replaceAll("@", "\\\\\"");
             body=body.replaceAll("§", "\\\"");
+
+            //System.out.println(body);
             try {
                     ResponseEntity<String[]> response2 =
                             restTemplate.exchange(
@@ -212,7 +227,7 @@ public class SigfoxApiDeviceType extends SigfoxApiConnector {
                         // set the corresponding callback as downlink if downlinkHook is set
                         SigfoxApiCallbackInformation downlink = o.getCallback().getCallbackIdWithDownlinkHookSet();
                         if ( downlink != null ) {
-                            log.info("downlink url : " + "devicetypes/" + _t.getId() + "/callbacks/" + downlink.getId() + "/downlink");
+                            //log.info("downlink url : " + "devicetypes/" + _t.getId() + "/callbacks/" + downlink.getId() + "/downlink");
                             ResponseEntity<String> response4 =
                                     restTemplate.exchange(
                                             this.connectionString(
