@@ -16,18 +16,20 @@
 
 package ingeniousthings.sigfox;
 import java.util.regex.*;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Summary
  *
  * Parse a sigfox incoming callback structure to extract and qualify the data
- * Later this object will be used to be map to a specifi object. This allows to have
+ * Later this object will be used to be map to a specific object. This allows to have
  * a common capture point whatever is the message type source.
  * The objective is to simplify the way we implement the callback in sigfox.
  * ----------------------------------------------------------------------------------
  * Support :
  *  - DATA POST
- *
+ *  - SERVICE POST
+ *  - ERROR POST
  *
  * @author Paul Pinault
  */
@@ -48,8 +50,8 @@ public class SigfoxCommonMessage {
     // -------------------------------------------------------
     // Other common but not especially mandatory
 
-    private boolean _seqNumber = false;
-    private int seqNumber;
+    private boolean _seq = false;
+    private int seq;
 
     private boolean _lat = false;
     private int lat;
@@ -64,14 +66,14 @@ public class SigfoxCommonMessage {
     private boolean _duplicate = false;
     private boolean duplicate;
 
-    private boolean _snr = false;
-    private double snr;
+    private boolean _signal = false;
+    private double signal;
 
     private boolean _station = false;
     private String station;
 
-    private boolean _avgSnr = false;
-    private double avgSnr;
+    private boolean _avgSignal = false;
+    private double avgSignal;
 
     private boolean _rssi = false;
     private double rssi;
@@ -84,6 +86,33 @@ public class SigfoxCommonMessage {
     private boolean _ack = false;
     private boolean ack;
 
+    // -------------------------------------------------------
+    // Service specific messages
+    private boolean _temp = false;
+    private double  temp;
+
+    private boolean _batt = false;
+    private double batt;
+
+    private boolean _infoCode = false;
+    private int infoCode;
+
+    private boolean _infoMessage = false;
+    private String infoMessage;
+
+    private boolean _downlinkAck = false;
+    private String downlinkAck;
+
+    private boolean _downlinkOverusage = false;
+    private boolean downlinkOverusage;
+
+    // -------------------------------------------------------
+    // Error specific messages
+    private boolean _info = false;
+    private String info;
+
+    private boolean _severity = false;
+    private String severity;
 
     // ==================================================================================
     // Getter & Setters
@@ -98,6 +127,8 @@ public class SigfoxCommonMessage {
         if ( device.matches("^[0-9A-F]+$") ) {
             this.device = device;
             this._device = true;
+        } else {
+            log.error("Received invalid device id ("+device+")");
         }
     }
 
@@ -126,12 +157,12 @@ public class SigfoxCommonMessage {
         this._duplicate = true;
     }
 
-    public double getSnr() {
-        return snr;
+    public double getSignal() {
+        return signal;
     }
-    public void setSnr(double snr) {
-        this.snr = snr;
-        this._snr = true;
+    public void setSignal(double signal) {
+        this.signal = signal;
+        this._signal = true;
     }
 
     public String getStation() {
@@ -166,20 +197,20 @@ public class SigfoxCommonMessage {
         this._lng = true;
     }
 
-    public int getSeqNumber() {
-        return seqNumber;
+    public int getSeq() {
+        return seq;
     }
-    public void setSeqNumber(int seqNumber) {
-        this.seqNumber = seqNumber;
-        this._seqNumber = true;
+    public void setSeq(int seq) {
+        this.seq = seq;
+        this._seq = true;
     }
 
-    public double getAvgSnr() {
-        return avgSnr;
+    public double getAvgSignal() {
+        return avgSignal;
     }
-    public void setAvgSnr(double avgSnr) {
-        this.avgSnr = avgSnr;
-        this._avgSnr = true;
+    public void setAvgSignal(double avgSignal) {
+        this.avgSignal = avgSignal;
+        this._avgSignal = true;
     }
 
     public boolean isAck() {
@@ -198,6 +229,70 @@ public class SigfoxCommonMessage {
         this._rssi = true;
     }
 
+    public double getTemp() {
+        return temp;
+    }
+    public void setTemp(double temp) {
+        this.temp = temp;
+        this._temp = true;
+    }
+
+    public double getBatt() {
+        return batt;
+    }
+    public void setBatt(double batt) {
+        this.batt = batt;
+        this._batt = true;
+    }
+
+    public int getInfoCode() {
+        return infoCode;
+    }
+    public void setInfoCode(int infoCode) {
+        this.infoCode = infoCode;
+        this._infoCode = true;
+    }
+
+    public String getInfoMessage() {
+        return infoMessage;
+    }
+    public void setInfoMessage(String infoMessage) {
+        this.infoMessage = infoMessage;
+        this._infoMessage = true;
+    }
+
+    public String getDownlinkAck() {
+        return downlinkAck;
+    }
+    public void setDownlinkAck(String downlinkAck) {
+        this.downlinkAck = downlinkAck;
+        this._downlinkAck = true;
+    }
+
+    public boolean isDownlinkOverusage() {
+        return downlinkOverusage;
+    }
+    public void setDownlinkOverusage(boolean downlinkOverusage) {
+        this.downlinkOverusage = downlinkOverusage;
+        this._downlinkOverusage = true;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+    public void setInfo(String info) {
+        this.info = info;
+        this._info = true;
+    }
+
+    public String getSeverity() {
+        return severity;
+    }
+    public void setSeverity(String severity) {
+        this.severity = severity;
+        this._severity = true;
+    }
+
     // ==================================================================================
     // Serialize
     // ----------------------------------------------------------------------------------
@@ -210,16 +305,24 @@ public class SigfoxCommonMessage {
         ret += (_device)?("device='" + device + '\''):"";
         ret += (_time)?(", time=" + time):"";
         ret += (_type)?(", type='" + type + '\''):"";
-        ret += (_duplicate)?(", duplicate=" + duplicate):"";
-        ret += (_snr)?(", snr=" + snr):"";
-        ret += (_station)?(", station='" + station + '\''):"";
+        ret += (_seq)?(", seq=" + seq):"";
         ret += (_data)?(", data='" + data + '\''):"";
+        ret += (_duplicate)?(", duplicate=" + duplicate):"";
+        ret += (_station)?(", station='" + station + '\''):"";
+        ret += (_signal)?(", signal=" + signal):"";
+        ret += (_avgSignal)?(", avgSignal=" + avgSignal):"";
+        ret += (_rssi)?(", rssi=" + rssi):"";
         ret += (_lat)?(", lat=" + lat):"";
         ret += (_lng)?(", lng=" + lng):"";
-        ret += (_seqNumber)?(", seqNumber=" + seqNumber):"";
-        ret += (_avgSnr)?(", avgSnr=" + avgSnr):"";
         ret += (_ack)?(", ack=" + ack):"";
-        ret += (_rssi)?(", rssi=" + rssi):"";
+        ret += (_temp)?(", temp=" + temp):"";
+        ret += (_batt)?(", batt=" + batt):"";
+        ret += (_infoCode)?(", infoCode=" + infoCode):"";
+        ret += (_infoMessage)?(", infoMessage=" + infoMessage):"";
+        ret += (_downlinkAck)?(", downlinkAck=" + downlinkAck):"";
+        ret += (_downlinkOverusage)?(", downlinkOverusage=" + downlinkOverusage):"";
+        ret += (_info)?(", info=" +info):"";
+        ret += (_severity)?(", severity=" + severity):"";
         ret += '}';
         return ret;
 
