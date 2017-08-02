@@ -15,9 +15,11 @@
  */
 
 package ingeniousthings.sigfox;
-import java.util.regex.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.regex.*;
 /**
  * Summary
  *
@@ -34,6 +36,8 @@ import org.slf4j.LoggerFactory;
  * @author Paul Pinault
  */
 public class SigfoxCommonMessage {
+
+    protected static final Logger log = LoggerFactory.getLogger(SigfoxCommonMessage.class);
 
     // --------------------------------------------------------
     // Common mandatory elements
