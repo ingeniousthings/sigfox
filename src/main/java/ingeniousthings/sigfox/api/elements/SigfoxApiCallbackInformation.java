@@ -88,12 +88,16 @@ public class SigfoxApiCallbackInformation {
     // ========================================================================
 
     public boolean isUplink() {
-        return (this.callbackSubtype == 2);
+        return (this.callbackType == 0 && this.callbackSubtype == 2);
     }
 
     public boolean isBidir() {
-        return (this.callbackSubtype == 3);
+        return (this.callbackType == 0 && this.callbackSubtype == 3);
     }
+
+    public boolean isError() { return (this.callbackType == 2); }
+
+    public boolean isService() { return (this.callbackType == 1); }
 
     public boolean isChannelUrl() {
         return ( this.channel.compareToIgnoreCase("url") == 0 );
@@ -120,14 +124,16 @@ public class SigfoxApiCallbackInformation {
         String str = "{" +
                 "  'channel' : '" + channel + '\'' +
                 ", 'callbackType' : " + callbackType +
-                ", 'callbackSubtype' : " + callbackSubtype +
                 ", 'url' : '" + url + '\'' +
                 ", 'httpMethod' : '" + httpMethod + '\'' +
                 ", 'enabled' : " + enabled +
                 ", 'sendDuplicate' : " + sendDuplicate +
                 ", 'sendSni' : " + sendSni;
+         if (! isError() ) {
+             str += ", 'callbackSubtype' : " + callbackSubtype;
+         }
 
-         if ( this.isChannelUrl() ) {
+        if ( this.isChannelUrl() ) {
                 if (this.payloadConfig != null) str+= ", 'payloadConfig' : '" + payloadConfig + '\'';
                 if (this.bodyTemplate != null) str+= ", 'bodyTemplate' : '" + bodyTemplate + '\'' ;
                 if (this.headers != null ) str+= ", 'headers' : " + headers;
