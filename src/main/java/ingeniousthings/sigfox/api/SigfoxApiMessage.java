@@ -35,7 +35,7 @@ import org.apache.commons.codec.binary.Base64;
 /**
  * Summary
  *
- * This class manage the sigfox Device Component from the SigfoxApi
+ * This class manage the sigfox Messages Component from the SigfoxApi
  * ----------------------------------------------------------------------------------
  * Requires:
  *   This class requieres SpringBoot framework
@@ -50,30 +50,36 @@ import org.apache.commons.codec.binary.Base64;
  *
  * @author Paul Pinault
  */
-public class SigfoxApiDevice extends SigfoxApiConnector {
+public class SigfoxApiMessage extends SigfoxApiConnector {
 
-    public SigfoxApiDevice(String login, String password) {
+    public SigfoxApiMessage(String login, String password) {
         super(login, password);
     }
 
     // ========================================================================
     // Get the list of all the available devices for a given deviceType
-    public List<SigfoxApiDeviceInformation> getSigfoxDevicesForDeviceType(String dtid) {
+    public List<SigfoxApiMessageInformation> getSigfoxMessagesForDevice(String did, long since) {
 
         RestTemplate restTemplate = new RestTemplate();
         String url = null;
-        SigfoxApiDeviceInformationList devices = null;
-        ArrayList<SigfoxApiDeviceInformation> ret = new ArrayList<SigfoxApiDeviceInformation>();
+        SigfoxApiMessageInformationList messages = null;
+        ArrayList<SigfoxApiMessageInformation> ret = new ArrayList<SigfoxApiMessageInformation>();
+
+        // When not specified reports last 7 days only
+        if ( since <= 0 ) {
+            long now = System.currentTimeMillis() / 1000;
+            since = ( now - 24*3600*7 );
+        }
 
         do {
             if ( url == null ) {
-                url = "devicetypes/" + dtid + "/devices";
+                url = "devices/" + did + "/messages?since="+since;
             } else {
-                if ( devices == null ) return null;
-                url = devices.getPaging().getNext();
-                url = url.substring(SigfoxApiConnector.API_PROTOCOL.length() + SigfoxApiConnector.API_BACKEND_URL.length());
+                if ( messages == null ) return null;
+                url  = messages.getPaging().getNext();
+                url  = url.substring(SigfoxApiConnector.API_PROTOCOL.length() + SigfoxApiConnector.API_BACKEND_URL.length());
             }
-            ResponseEntity<SigfoxApiDeviceInformationList> response =
+            ResponseEntity<SigfoxApiMessageInformationList> response =
                     restTemplate.exchange(
                             this.connectionString(
                                     url,
@@ -81,41 +87,17 @@ public class SigfoxApiDevice extends SigfoxApiConnector {
                             ),
                             HttpMethod.GET,
                             this.generateRequestHeaders(),
-                            SigfoxApiDeviceInformationList.class);
-            devices = response.getBody();
-            log.info(devices.toString());
-            for ( int i =0 ; i < devices.getData().length ; i++ ) {
-                ret.add(devices.getData()[i]);
+                            SigfoxApiMessageInformationList.class);
+            messages = response.getBody();
+            log.info(messages.toString());
+            for ( int i =0 ; i < messages.getData().length ; i++ ) {
+                ret.add(messages.getData()[i]);
             }
 
-        } while ( devices.getPaging().getNext() != null );
+        } while ( messages.getPaging().getNext() != null );
 
         return ret;
     }
-
-    // ========================================================================
-    // Get a specific contract id information
-    public SigfoxApiDeviceInformation getSigfoxDevice(String id) {
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        ResponseEntity<SigfoxApiDeviceInformation> response =
-                restTemplate.exchange(
-                        this.connectionString(
-                                "devices/" + id,
-                                null
-                        ),
-                        HttpMethod.GET,
-                        this.generateRequestHeaders(),
-                        SigfoxApiDeviceInformation.class);
-        SigfoxApiDeviceInformation device = response.getBody();
-
-        log.info("getSigfoxDevice by id ("+id+") : "+device.toString());
-        return device;
-
-    }
-
-
 
 
 
