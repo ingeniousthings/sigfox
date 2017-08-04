@@ -94,8 +94,11 @@ public class SigfoxApiDevice extends SigfoxApiConnector {
     }
 
     // ========================================================================
-    // Get a specific contract id information
+    // Get a specific device id information with the associated message metrics or not
     public SigfoxApiDeviceInformation getSigfoxDevice(String id) {
+        return getSigfoxDevice(id,false);
+    }
+    public SigfoxApiDeviceInformation getSigfoxDevice(String id, boolean metric) {
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -110,11 +113,26 @@ public class SigfoxApiDevice extends SigfoxApiConnector {
                         SigfoxApiDeviceInformation.class);
         SigfoxApiDeviceInformation device = response.getBody();
 
+        if ( metric ) {
+            ResponseEntity<SigfoxApiMessageMetric> response2 =
+                    restTemplate.exchange(
+                            this.connectionString(
+                                    "devices/" + id+ "/messages/metric",
+                                    null
+                            ),
+                            HttpMethod.GET,
+                            this.generateRequestHeaders(),
+                            SigfoxApiMessageMetric.class);
+            device.setMetric(response2.getBody());
+        }
+
         log.info("getSigfoxDevice by id ("+id+") : "+device.toString());
         return device;
 
     }
 
+    // ========================================================================
+    // Get a specific device id information
 
 
 

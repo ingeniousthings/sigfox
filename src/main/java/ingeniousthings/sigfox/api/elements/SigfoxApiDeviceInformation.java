@@ -124,6 +124,8 @@ public class SigfoxApiDeviceInformation {
     protected long      tokenEnd;
     protected boolean   preventRenewal;
 
+    protected SigfoxApiMessageMetric  metric = null;
+
 
     // ------------------------------------------------------------------
     // Advanced function
@@ -278,6 +280,14 @@ public class SigfoxApiDeviceInformation {
         this.preventRenewal = preventRenewal;
     }
 
+    public ingeniousthings.sigfox.api.elements.SigfoxApiMessageMetric getMetric() {
+        return metric;
+    }
+
+    public void setMetric(ingeniousthings.sigfox.api.elements.SigfoxApiMessageMetric metric) {
+        this.metric = metric;
+    }
+
     // ------------------------------------------------------
     // Serialization
 
@@ -303,6 +313,9 @@ public class SigfoxApiDeviceInformation {
                 ", preventRenewal=" + preventRenewal;
         if ( computedLocation != null ) {
             str += ", computedLocation=" + computedLocation;
+        }
+        if ( metric != null ) {
+            str += ", metric=" + metric;
         }
         str += '}';
         return str;
