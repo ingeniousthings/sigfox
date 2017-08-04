@@ -28,6 +28,8 @@ import java.lang.System;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.nio.charset.Charset;
+import java.util.List;
+
 import org.apache.commons.codec.binary.Base64;
 
 /**
@@ -54,30 +56,43 @@ public class SigfoxApiDevice extends SigfoxApiConnector {
         super(login, password);
     }
 
-
     // ========================================================================
-    // Get the list of all the available contract on your account. including the
-    // active & non activ contracts.
- /*   public List<SigfoxApiContractInformation> getSigfoxAllContract() {
+    // Get the list of all the available devices for a given deviceType
+    public List<SigfoxApiDeviceInformation> getSigfoxDevicesForDeviceType(String dtid) {
 
         RestTemplate restTemplate = new RestTemplate();
+        String url = null;
+        SigfoxApiDeviceInformationList devices = null;
+        ArrayList<SigfoxApiDeviceInformation> ret = new ArrayList<SigfoxApiDeviceInformation>();
 
-        ResponseEntity<SigfoxApiContractList> response =
-                restTemplate.exchange(
-                        this.connectionString(
-                                "contracts",
-                                null
-                        ),
-                        HttpMethod.GET,
-                        this.generateRequestHeaders(),
-                        SigfoxApiContractList.class);
-        SigfoxApiContractList contracts = response.getBody();
+        do {
+            if ( url == null ) {
+                url = "devicetypes/" + dtid + "/devices";
+            } else {
+                if ( devices == null ) return null;
+                url = devices.getPaging().getNext();
+                url = url.substring(SigfoxApiConnector.API_PROTOCOL.length() + SigfoxApiConnector.API_BACKEND_URL.length());
+            }
+            ResponseEntity<SigfoxApiDeviceInformationList> response =
+                    restTemplate.exchange(
+                            this.connectionString(
+                                    url,
+                                    null
+                            ),
+                            HttpMethod.GET,
+                            this.generateRequestHeaders(),
+                            SigfoxApiDeviceInformationList.class);
+            devices = response.getBody();
+            log.info(devices.toString());
+            for ( int i =0 ; i < devices.getData().length ; i++ ) {
+                ret.add(devices.getData()[i]);
+            }
 
-        log.info(contracts.toString());
-        return Arrays.asList(contracts.getData());
+        } while ( devices.getPaging().getNext() != null );
 
+        return ret;
     }
-*/
+
     // ========================================================================
     // Get a specific contract id information
     public SigfoxApiDeviceInformation getSigfoxDevice(String id) {

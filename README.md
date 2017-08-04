@@ -60,3 +60,26 @@ d.getSigfoxAllDeviceType();
 
 // return detailed information for a given device type, including callback list
 d.getSigfoxDeviceTypeById("your_device_type_is");	
+
+
+
+# Contract
+Get the list of contract & validContract. From this you can also obtain the groupId needed to create a deviceType
+
+SigfoxApiContract contracts = new SigfoxApiContract("your_api_login","your_api_password");
+        // Get a list of the contract actually valid
+        contracts.getSigfoxValidContract();
+        // Get a specific contract  
+        contracts.getSigfoxContract("your_contract_id");
+        // Get the groupId associated to a contract
+        String group = contracts.getSigfoxGroupFromContract("your_contract_id");
+
+
+# Devices
+Get information from a specific device
+SigfoxApiDevice devices = new SigfoxApiDevice("your_api_login","your_api_password");
+        // Get information about one specific deviceId
+        SigfoxApiDeviceInformation device = devices.getSigfoxDevice("DEVICEID");
+        // Get all the devices attached to a specified device type - paging managed.
+        List<SigfoxApiDeviceInformation> liste = devices.getSigfoxDevicesForDeviceType("your_device_type");
+

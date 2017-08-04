@@ -48,8 +48,8 @@ public class SigfoxApiConnector {
         private String login;           // Api login given by sigfox
         private String password;        // Api password given by sigfox
 
-        private static final String API_PROTOCOL = "https://";
-        private static final String API_BACKEND_URL = "backend.sigfox.com/api/";
+        protected static final String API_PROTOCOL = "https://";
+        protected static final String API_BACKEND_URL = "backend.sigfox.com/api/";
 
         // ---------------------------------------------------------------------------
         // Constructor - need a user & password. These one are created from the backend
