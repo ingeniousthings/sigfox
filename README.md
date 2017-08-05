@@ -110,6 +110,18 @@ Get the Messages not loaded into the backend due to callback error.
      List<SigfoxApiMessageInformation> messages = messages.getSigfoxErrorMessagesForDeviceType("your_device_id",since_this_epoc_date_in_ms);
 
 
+# ------------------------------------------------------------------------------------------
+# Coverage
+
+Get the coverage for a given location. Two information can be query : redundancy (number of antennas) and radio limit in dB.
+
+SigfoxApiCoverage coverage = new SigfoxApiCoverage("your_api_login","your_api_password");
+        coverage.getSigfoxCoverageRedundancy(45.78,3.08,true);
+        coverage.getSigfoxCoverageMargins(45.78,3.08);
+
+
+
+
 
 
 
