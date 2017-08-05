@@ -132,8 +132,26 @@ public class SigfoxApiDevice extends SigfoxApiConnector {
     }
 
     // ========================================================================
-    // Get a specific device id information
+    // Get a specific device consumption history
+    public SigfoxApiConsumptionInformationList getSigfoxDeviceConsumption(String id,int year) {
 
+        RestTemplate restTemplate = new RestTemplate();
+
+        ResponseEntity<SigfoxApiConsumptionInformationList> response =
+                restTemplate.exchange(
+                        this.connectionString(
+                                "device/" + id + "/consumptions/"+year,
+                                null
+                        ),
+                        HttpMethod.GET,
+                        this.generateRequestHeaders(),
+                        SigfoxApiConsumptionInformationList.class);
+        SigfoxApiConsumptionInformationList consumption = response.getBody();
+
+        log.info("getSigfoxDeviceConsumption with id ("+id+") & year ("+year+") : "+consumption.toString());
+        return consumption;
+
+    }
 
 
 
