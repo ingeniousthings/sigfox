@@ -58,6 +58,9 @@ public class SigfoxApiMessage extends SigfoxApiConnector {
 
     // ========================================================================
     // Get the list of all the available devices for a given deviceType
+    // Parameters :
+    //  - Device Id as a String
+    //  - Time to start search from in ms ; end is now. Default is 7 day before now
     public List<SigfoxApiMessageInformation> getSigfoxMessagesForDevice(String did, long since) {
 
         RestTemplate restTemplate = new RestTemplate();
@@ -69,6 +72,8 @@ public class SigfoxApiMessage extends SigfoxApiConnector {
         if ( since <= 0 ) {
             long now = System.currentTimeMillis() / 1000;
             since = ( now - 24*3600*7 );
+        } else {
+            since /= 1000;      // Api is in seconds
         }
 
         do {
@@ -99,6 +104,69 @@ public class SigfoxApiMessage extends SigfoxApiConnector {
         return ret;
     }
 
+    // ========================================================================
+    // Get the list of all messages in error for a given device
+    // Parameters :
+    //  - Device Id as a String
+    //  - Time to start search from in ms ; end is now. Default is 7 day before now
+    public List<SigfoxApiMessageInformation> getSigfoxErrorMessagesForDevice(String deviceId, long since) {
+       return  getSigfoxErrorMessagesForAny( "hexId="+deviceId, since);
+    }
+
+    // ========================================================================
+    // Get the list of all messages in error for a given device
+    // Parameters :
+    //  - Device Id as a String
+    //  - Time to start search from in ms ; end is now. Default is 7 day before now
+    public List<SigfoxApiMessageInformation> getSigfoxErrorMessagesForDeviceType(String deviceTypeId, long since) {
+        return  getSigfoxErrorMessagesForAny( "deviceTypeId="+deviceTypeId, since);
+    }
+
+    // ========================================================================
+    // Get the list of all messages in error generic function
+    // Parameters :
+    //  - Search string
+    //  - Time to start search from in ms ; end is now. Default is 7 day before now
+    protected List<SigfoxApiMessageInformation> getSigfoxErrorMessagesForAny(String limit, long since) {
+
+        RestTemplate restTemplate = new RestTemplate();
+        String url = null;
+        SigfoxApiMessageInformationList messages = null;
+        ArrayList<SigfoxApiMessageInformation> ret = new ArrayList<SigfoxApiMessageInformation>();
+
+        // When not specified reports last 7 days only
+        if ( since <= 0 ) {
+            long now = System.currentTimeMillis();
+            since = ( now - 24*3600*7*1000 );
+        }
+
+        do {
+            if ( url == null ) {
+                url = "callbacks/messages/error?"+limit+"&since="+since;
+            } else {
+                if ( messages == null ) return null;
+                url  = messages.getPaging().getNext();
+                url  = url.substring(SigfoxApiConnector.API_PROTOCOL.length() + SigfoxApiConnector.API_BACKEND_URL.length());
+            }
+            ResponseEntity<SigfoxApiMessageInformationList> response =
+                    restTemplate.exchange(
+                            this.connectionString(
+                                    url,
+                                    null
+                            ),
+                            HttpMethod.GET,
+                            this.generateRequestHeaders(),
+                            SigfoxApiMessageInformationList.class);
+            messages = response.getBody();
+            log.info(messages.toString());
+            for ( int i =0 ; i < messages.getData().length ; i++ ) {
+                ret.add(messages.getData()[i]);
+            }
+
+        } while ( messages.getPaging().getNext() != null );
+
+        return ret;
+    }
 
 
 }

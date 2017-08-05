@@ -18,6 +18,12 @@ package ingeniousthings.sigfox.api.elements;
 
 import java.lang.Override;
 import java.lang.String;
+import java.util.Map;
+import java.util.HashMap;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Summary
@@ -51,19 +57,48 @@ import java.lang.String;
  *                      headers: { "key":"value" },
  *                      contentType: "application/json",
  *  }
+ *  Fields coming from the Message Error Api with different names
+ *  {
+ *              url: "https://api.staging.ingeniousthings.fr/capture/api/sigfox",   - existing
+ *              headers: { },                                                       - existing
+ *              method: "POST",                                                     - equivalent to httpMethod
+ *              contentType: "application/json",                                    - existing
+ *              body: {                                                             - equivalent with bodyTemplate ( but updated one way )
+ *                  time: 1501941440,
+ *                  your body content
+ *              }
+ *  }
  * ----------------------------------------------------------------------------------
  * Support
  *  - channel "URL" and "BATCH_URL" only actually
  *  - callbacktype 0
  *
  * ----------------------------------------------------------------------------------
- * Tobe fixed
- *  - when header field is {} the deserialization process crash. header should not be a String format
- *         potentially Map<String,String> could be better ... to be tested
  *
  * @author Paul Pinault
  */
 public class SigfoxApiCallbackInformation {
+
+    static class KeyValue {
+        @JsonIgnore
+        private Map<String,Object> entry = new HashMap<String, Object>();
+
+        @JsonAnyGetter
+        public Map<String, Object> getEntry() {
+            return entry;
+        }
+
+        @JsonAnySetter
+        public void setEntry(String name, Object value) {
+            this.entry.put(name,value);
+        }
+
+        @Override
+        public String toString() {
+            return entry.toString();
+        }
+    }
+
 
     private String id;
     private String channel;
@@ -77,9 +112,11 @@ public class SigfoxApiCallbackInformation {
     private String urlPattern;
     private String url;
     private String bodyTemplate;
-    private String headers;
+    private KeyValue body;
+    private KeyValue headers;
     private String contentType;
     private String httpMethod;
+    private String method;
     private String linePattern;
     private boolean downlinkHook;               // true when the callback is used for downlink
 
@@ -175,11 +212,20 @@ public class SigfoxApiCallbackInformation {
         this.bodyTemplate = bodyTemplate;
     }
 
-    public String getHeaders() {
+    public ingeniousthings.sigfox.api.elements.SigfoxApiCallbackInformation.KeyValue getBody() {
+        return body;
+    }
+
+    public void setBody(ingeniousthings.sigfox.api.elements.SigfoxApiCallbackInformation.KeyValue  body) {
+        this.body = body;
+        this.bodyTemplate = body.toString();
+    }
+
+    public ingeniousthings.sigfox.api.elements.SigfoxApiCallbackInformation.KeyValue getHeaders() {
         return headers;
     }
 
-    public void setHeaders(String headers) {
+    public void setHeaders(ingeniousthings.sigfox.api.elements.SigfoxApiCallbackInformation.KeyValue headers) {
         this.headers = headers;
     }
 
@@ -258,6 +304,7 @@ public class SigfoxApiCallbackInformation {
 
     public void setHttpMethod(String httpMethod) {
         this.httpMethod = httpMethod;
+        this.method = httpMethod;
     }
 
     public int getCallbackSubtype() {
@@ -284,6 +331,15 @@ public class SigfoxApiCallbackInformation {
         this.linePattern = linePattern;
     }
 
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
+        this.httpMethod = method;
+    }
+
     @Override
     public String toString() {
         return "SigfoxApiCallbackInformation{" +
@@ -306,4 +362,5 @@ public class SigfoxApiCallbackInformation {
                 ", downlinkHook=" + downlinkHook +
                 '}';
     }
+
 }

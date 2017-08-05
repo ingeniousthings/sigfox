@@ -101,7 +101,15 @@ SigfoxApiDevice devices = new SigfoxApiDevice("your_api_login","your_api_passwor
 Get the Message history for a device. The solution manage paging to provide in one array all the messages.
 Note : the Api provide much less information than the callback interface. 
 SigfoxApiMessage messagesApi = new SigfoxApiMessage("your_api_login","your_api_password");
-     List<SigfoxApiMessageInformation> messages = messagesApi.getSigfoxMessagesForDevice("your_device_id",since_this_epoc_date);
+     List<SigfoxApiMessageInformation> messages = messagesApi.getSigfoxMessagesForDevice("your_device_id",since_this_epoc_date_in_ms);
+
+Get the Messages not loaded into the backend due to callback error.
+* For a given device
+     List<SigfoxApiMessageInformation> messages = messages.getSigfoxErrorMessagesForDevice("your_device_id",since_this_epoc_date_in_ms);
+* For a given deviceType
+     List<SigfoxApiMessageInformation> messages = messages.getSigfoxErrorMessagesForDeviceType("your_device_id",since_this_epoc_date_in_ms);
+
+
 
 
 

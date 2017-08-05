@@ -19,6 +19,12 @@ package ingeniousthings.sigfox.api.elements;
 import java.io.IOException;
 import java.lang.Override;
 import java.lang.String;
+import java.util.Map;
+import java.util.HashMap;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 /**
@@ -27,7 +33,7 @@ import java.lang.String;
  * Object retruned by sigfox API corresponding to a Message sent by a device.
  *
  * ----------------------------------------------------------------------------------
- * Response Format :
+ * Response Format when coming from the history:
  *  {
  *          "device" : "002C",
  *          "time" : 1343321977,
@@ -43,9 +49,50 @@ import java.lang.String;
  *              "data" : "1511000a00007894"
  *          }
  *  }
+ * Response Format when coming from the error list:
+ * {
+ *          device: "7B40E",
+ *          deviceUrl: "/device/504846",
+ *          deviceType: "device_type_id",
+ *          time: 1501941440000,
+ *          date: "2017-08-05 15:57:20",
+ *          raw: "10cd37383838290500000000",
+ *          data: "10cd37383838290500000000",
+ *          snr: 42.43,
+ *          status: 403,
+ *          message: "Forbidden",
+ *          callback: {
+ *              url: "https://api.staging.ingeniousthings.fr/capture/api/sigfox",
+ *              headers: { },
+ *              method: "POST",
+ *              contentType: "application/json",
+ *              body: {
+ *                  time: 1501941440,
+ *                  your body content
+ *              }
+ *          },
+ *          parameters: {
+ *              time :  154241673,
+ *              Your_data_list
+ *          }
+ },
  * @author Paul Pinault
  */
 public class SigfoxApiMessageInformation {
+
+    // ------------------------------------------------------------------
+    // This part is common to any source of messages
+    public static final int MESSAGESOURCE_HISTORY   = 0;
+    public static final int MESSAGESOURCE_ERRORS    = 1;
+
+    protected String    device;
+    protected long      time;
+    protected String    data;
+    protected double    snr;
+    protected int       source;
+
+    // ------------------------------------------------------------------
+    // This part is related to message from message history
 
     public static final String LINKQUALITY_LIMIT = "LIMIT";
     public static final String LINKQUALITY_AVERAGE = "AVERAGE";
@@ -108,14 +155,41 @@ public class SigfoxApiMessageInformation {
                     '}';
         }
     }
+    static class KeyValue {
+        @JsonIgnore
+        private Map<String,Object> entry = new HashMap<String, Object>();
 
-    protected String    device;
-    protected long      time;
-    protected String    data;
-    protected double    snr;
+        @JsonAnyGetter
+        public Map<String, Object> getEntry() {
+            return entry;
+        }
+
+        @JsonAnySetter
+        public void setEntry(String name, Object value) {
+            this.entry.put(name,value);
+        }
+
+        @Override
+        public String toString() {
+            return entry.toString();
+        }
+    }
+
+
     protected MessageLocation   computedLocation;
-    protected String    linkQuality;
+    protected String            linkQuality;
     protected DownlinkMessage   downlinkAnswerStatus;
+
+    // -------------------------------------------------------------------
+    // This part is related to message from message error
+    protected String deviceUrl;
+    protected String deviceType;
+    protected String date;
+    protected String raw;
+    protected int    status;
+    protected String message;
+    protected SigfoxApiCallbackInformation callback;
+    protected KeyValue parameters;
 
 
     // ------------------------------------------------------------------
@@ -173,6 +247,7 @@ public class SigfoxApiMessageInformation {
 
     public void setLinkQuality(String linkQuality) {
         this.linkQuality = linkQuality;
+        this.source = MESSAGESOURCE_HISTORY;
     }
 
     public ingeniousthings.sigfox.api.elements.SigfoxApiMessageInformation.DownlinkMessage getDownlinkAnswerStatus() {
@@ -183,30 +258,117 @@ public class SigfoxApiMessageInformation {
         this.downlinkAnswerStatus = downlinkAnswerStatus;
     }
 
+    public int getSource() {
+        return source;
+    }
+
+    public void setSource(int source) {
+        this.source = source;
+    }
+
+    public String getDeviceUrl() {
+        return deviceUrl;
+    }
+
+    public void setDeviceUrl(String deviceUrl) {
+        this.deviceUrl = deviceUrl;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+        this.source = MESSAGESOURCE_ERRORS;
+    }
+
+    public String getRaw() {
+        return raw;
+    }
+
+    public void setRaw(String raw) {
+        this.raw = raw;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public SigfoxApiCallbackInformation getCallback() {
+        return callback;
+    }
+
+    public void setCallback(SigfoxApiCallbackInformation callback) {
+        this.callback = callback;
+    }
+
+    public ingeniousthings.sigfox.api.elements.SigfoxApiMessageInformation.KeyValue getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(ingeniousthings.sigfox.api.elements.SigfoxApiMessageInformation.KeyValue parameters) {
+        this.parameters = parameters;
+    }
 
     // ------------------------------------------------------
     // Serialization
 
-
     @Override
     public String toString() {
         String str = "SigfoxApiMessageInformation{" +
-                "device='" + device + '\'' +
+                "source=" + this.source +
+                ", device='" + device + '\'' +
                 ", time=" + time +
                 ", data='" + data + '\'' +
-                ", snr=" + snr +
-                ", linkQuality='" + linkQuality + '\'';
+                ", snr=" + snr;
+        switch ( this.source ) {
+            case MESSAGESOURCE_HISTORY :
+                str += ", linkQuality='" + linkQuality + '\'';
+                if ( computedLocation != null ) {
+                    str += ", computedLocation=" + computedLocation;
+                }
+                if ( downlinkAnswerStatus != null ) {
+                    str += ", downlinkAnswerStatus=" + downlinkAnswerStatus;
+                }
+                break;
+            case MESSAGESOURCE_ERRORS :
+                str +=  ", deviceUrl='" + deviceUrl + '\'' +
+                        ", deviceType='" + deviceType + '\'' +
+                        ", date='" + date + '\'' +
+                        ", raw='" + raw + '\'' +
+                        ", data='" + data + '\'' +
+                        ", status=" + status +
+                        ", message='" + message + '\'' +
+                        ", callback=" + callback +
+                        ", parameters='" + parameters + '\'';
 
-        if ( computedLocation != null ) {
-            str += ", computedLocation=" + computedLocation;
+                break;
         }
-        if ( downlinkAnswerStatus != null ) {
-            str += ", downlinkAnswerStatus=" + downlinkAnswerStatus;
-        }
-
         str += '}';
         return str;
     }
+
 }
 
 
