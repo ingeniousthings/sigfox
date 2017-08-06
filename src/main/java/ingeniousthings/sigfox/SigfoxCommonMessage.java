@@ -18,7 +18,9 @@ package ingeniousthings.sigfox;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.lang.System;
 import java.util.regex.*;
 /**
  * Summary
@@ -39,90 +41,186 @@ public class SigfoxCommonMessage {
 
     protected static final Logger log = LoggerFactory.getLogger(SigfoxCommonMessage.class);
 
+    public static final String TYPE_DATA = "data";
+    public static final String TYPE_SERVICE_STATUS = "srv_status";
+    public static final String TYPE_SERVICE_ACK = "srv_ack";
+    public static final String TYPE_ERROR = "error";
+
+    public enum MessageType {
+        DATA,SERVICE_STATUS,SERVICE_ACK,ERROR, UNKNOWN
+    };
+
+    // --------------------------------------------------------
+    // interal elements
+    @JsonIgnore private long messageUid = 0L;
+    @JsonIgnore private boolean _messageUid = false;
+
     // --------------------------------------------------------
     // Common mandatory elements
 
-    private boolean _device = false;
+    @JsonIgnore private boolean _device = false;
     private String device;
 
-    private boolean _time = false;
+    @JsonIgnore private boolean _time = false;
     private long time;
 
-    private boolean _type = false;
+    @JsonIgnore private boolean _type = false;
     private String type;
+    @JsonIgnore private MessageType messagetype = MessageType.UNKNOWN;
 
     // -------------------------------------------------------
     // Other common but not especially mandatory
 
-    private boolean _seq = false;
+    @JsonIgnore private boolean _seq = false;
     private int seq;
 
-    private boolean _lat = false;
+    @JsonIgnore private boolean _lat = false;
     private int lat;
 
-    private boolean _lng = false;
+    @JsonIgnore private boolean _lng = false;
     private int lng;
 
 
     // -------------------------------------------------------
     // Radio & network elements
 
-    private boolean _duplicate = false;
+    @JsonIgnore private boolean _duplicate = false;
     private boolean duplicate;
 
-    private boolean _signal = false;
+    @JsonIgnore private boolean _signal = false;
     private double signal;
 
-    private boolean _station = false;
+    @JsonIgnore private boolean _station = false;
     private String station;
 
-    private boolean _avgSignal = false;
+    @JsonIgnore private boolean _avgSignal = false;
     private double avgSignal;
 
-    private boolean _rssi = false;
+    @JsonIgnore private boolean _rssi = false;
     private double rssi;
 
     // -------------------------------------------------------
     // Data specific messages
-    private boolean _data = false;
+    @JsonIgnore private boolean _data = false;
     private String data;
 
-    private boolean _ack = false;
+    @JsonIgnore private boolean _ack = false;
     private boolean ack;
 
     // -------------------------------------------------------
     // Service specific messages
-    private boolean _temp = false;
+    @JsonIgnore private boolean _temp = false;
     private double  temp;
 
-    private boolean _batt = false;
+    @JsonIgnore private boolean _batt = false;
     private double batt;
 
-    private boolean _infoCode = false;
+    @JsonIgnore private boolean _infoCode = false;
     private int infoCode;
 
-    private boolean _infoMessage = false;
+    @JsonIgnore private boolean _infoMessage = false;
     private String infoMessage;
 
-    private boolean _downlinkAck = false;
+    @JsonIgnore private boolean _downlinkAck = false;
     private String downlinkAck;
 
-    private boolean _downlinkOverusage = false;
+    @JsonIgnore private boolean _downlinkOverusage = false;
     private boolean downlinkOverusage;
 
     // -------------------------------------------------------
     // Error specific messages
-    private boolean _info = false;
+    @JsonIgnore private boolean _info = false;
     private String info;
 
-    private boolean _severity = false;
+    @JsonIgnore private boolean _severity = false;
     private String severity;
+
+    // ==================================================================================
+    // Advanced functions
+    // ----------------------------------------------------------------------------------
+    //
+    // ==================================================================================
+
+    // -------------------------------------------------------------------------------
+    // Verify the data received to be compliant with the expectation
+    public boolean isValidMessage() {
+
+        if ( !_device || !_time || !_type ) return false;
+
+        switch ( this.messagetype ) {
+            case DATA:
+                if ( !_seq || !_data ) return false;
+                break;
+            case SERVICE_STATUS:
+                if ( !_seq || !_temp || !_batt ) return false;
+                break;
+            case SERVICE_ACK:
+                if ( !_infoCode ) return false;
+                break;
+            case ERROR:
+                if ( !_info ) return false;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+
+
+    // -------------------------------------------------------------------------------
+    // Compose a message UID specific to a message (but common to message duplicates
+    // Format is 8 bytes (long)
+    // | DeviceId ( 4byte reverted ) 31 bits | 2 b MessageType | time (4 bytes) 31 bits
+    public void composeMessageUid() {
+
+        long messageType = 0;
+        switch ( this.messagetype ) {
+            case DATA:
+                messageType = 3;
+                break;
+            case SERVICE_STATUS:
+                messageType = 1;
+                break;
+            case SERVICE_ACK:
+                messageType = 2;
+                break;
+            case ERROR:
+                messageType = 0;
+                break;
+        }
+        long intDevice = Long.parseLong(this.device,16);
+        long intRevertDevice = 0;
+        intRevertDevice |= (intDevice & 1);
+        for ( int i = 1 ; i < 32 ; i++) {
+            intRevertDevice = intRevertDevice << 1;
+            intDevice = intDevice >> 1;
+            intRevertDevice |= (intDevice & 1);
+        }
+
+        this.messageUid  = ( this.time >> 1 ) & 0x7FFFFFFF;
+        this.messageUid |= ( intRevertDevice << 33 );
+        this.messageUid |= ( messageType & 3 ) << 31;
+        this._messageUid = true;
+
+    }
+
+
 
     // ==================================================================================
     // Getter & Setters
     // ----------------------------------------------------------------------------------
     //
     // ==================================================================================
+
+
+    public long getMessageUid() {
+        return messageUid;
+    }
+
+    public void setMessageUid(long messageUid) {
+        this.messageUid = messageUid;
+    }
 
     public String getDevice() {
         return device;
@@ -142,8 +240,20 @@ public class SigfoxCommonMessage {
     public void setType(String type) {
         this.type = type;
         this._type = true;
+        if ( this.type.compareToIgnoreCase(TYPE_DATA) == 0 ) {
+            this.messagetype = MessageType.DATA;
+        } else if ( this.type.compareToIgnoreCase(TYPE_SERVICE_STATUS) == 0) {
+            this.messagetype = MessageType.SERVICE_STATUS;
+        } else if ( this.type.compareToIgnoreCase(TYPE_SERVICE_ACK) == 0) {
+            this.messagetype = MessageType.SERVICE_ACK;
+        } else if ( this.type.compareToIgnoreCase(TYPE_ERROR) == 0) {
+            this.messagetype = MessageType.ERROR;
+        } else  this.messagetype = MessageType.UNKNOWN;
     }
 
+    public ingeniousthings.sigfox.SigfoxCommonMessage.MessageType getMessagetype() {
+        return messagetype;
+    }
 
     public long getTime() {
         return time;
@@ -308,6 +418,7 @@ public class SigfoxCommonMessage {
         String ret = "SigfoxCommonMessage{";
         ret += (_device)?("device='" + device + '\''):"";
         ret += (_time)?(", time=" + time):"";
+        ret += (_messageUid)?(", messageUid=0x" + Long.toHexString(messageUid).toUpperCase()):"";
         ret += (_type)?(", type='" + type + '\''):"";
         ret += (_seq)?(", seq=" + seq):"";
         ret += (_data)?(", data='" + data + '\''):"";
