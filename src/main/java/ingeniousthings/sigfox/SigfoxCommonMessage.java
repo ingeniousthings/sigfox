@@ -16,12 +16,9 @@
 
 package ingeniousthings.sigfox;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import java.lang.System;
-import java.util.regex.*;
 /**
  * Summary
  *

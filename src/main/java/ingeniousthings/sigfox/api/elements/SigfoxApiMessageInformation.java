@@ -16,15 +16,12 @@
  */
 package ingeniousthings.sigfox.api.elements;
 
-import java.io.IOException;
-import java.lang.Override;
-import java.lang.String;
-import java.util.Map;
-import java.util.HashMap;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**

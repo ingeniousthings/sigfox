@@ -16,19 +16,11 @@
  */
 package ingeniousthings.sigfox.api;
 
-import ingeniousthings.sigfox.api.elements.*;
+import ingeniousthings.sigfox.api.elements.SigfoxApiCoverageMargins;
+import ingeniousthings.sigfox.api.elements.SigfoxApiCoverageRedundancy;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.core.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.*;
-
-import java.lang.System;
-import java.lang.reflect.ParameterizedType;
-import java.util.*;
-import java.nio.charset.Charset;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Summary

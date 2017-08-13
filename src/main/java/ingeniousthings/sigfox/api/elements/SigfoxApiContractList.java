@@ -17,8 +17,8 @@
 
 package ingeniousthings.sigfox.api.elements;
 
-import java.lang.String;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**

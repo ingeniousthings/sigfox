@@ -16,9 +16,6 @@
 
 package ingeniousthings.sigfox.api.elements;
 
-import java.lang.Override;
-import java.lang.String;
-
 /**
  * Summary
  *
